@@ -45,7 +45,7 @@ int count(u_int1024_t *v)
         {
             v->lenOfArray = h + 1;
             break;
-    }
+        }
     return v->lenOfArray;
 }
 // ----------------------- Our "vector" (end) ---------------------------
@@ -76,9 +76,9 @@ u_int1024_t subtr_op(u_int1024_t x, u_int1024_t y)
     for (size_t i = 0; i < 35; i++)
     {
         x.el[i] -= flagOfСarryover + (i < count(&y) ? y.el[i] : 0);
-        flagOfСarryover = y.el[i] < 0;
+        flagOfСarryover = (int)x.el[i] < 0;
         if (flagOfСarryover)
-            y.el[i] += base;
+            x.el[i] += base;
     }
     return x;
 }
@@ -157,6 +157,7 @@ void scanf_value(u_int1024_t *x)
 // ----------------------- Function of generation from unsigned long int to u_int1024_t(start) ---------------------------
 u_int1024_t from_uint(unsigned int x)
 {
+    
     u_int1024_t k;
     init(&k);
     k.el[0] = x % base;
