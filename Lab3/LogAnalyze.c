@@ -25,7 +25,7 @@ char *readStringOfLog(int lenOfString)
 	return stringOfLog;
 }
 
-void logParser(char **stringOfTime, char **stringOfRequest, char **stringOfServerStatus)
+char *logParser(char **stringOfTime, char **stringOfRequest, char **stringOfServerStatus)
 {
 	char *stringOfLog = readStringOfLog(0);
 	char *tempChar;
@@ -35,6 +35,7 @@ void logParser(char **stringOfTime, char **stringOfRequest, char **stringOfServe
 	strtok_r(NULL, "\"", &tempChar);
 	*stringOfRequest = strtok_r(NULL, "\"", &tempChar);
 	*stringOfServerStatus = strtok_r(NULL, " ", &tempChar);
+	return stringOfLog;
 }
 
 int logTimeParser(char *stringOfTime)
@@ -48,18 +49,13 @@ int logTimeParser(char *stringOfTime)
 
 	curString = strtok_r(NULL, "/", &tempChar);
 
-	typedef struct ArrayStrings
-	{
-		char name[100];
-	} ArrayStrings;
-
-	ArrayStrings arrayOfMonthes[12] =
+	const char *arrayOfMonthes[12] =
 		{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-	for (int numberOfMonth = 0; numberOfMonth < 13; numberOfMonth++)
+	for (int numberOfMonth = 0; numberOfMonth < 12; numberOfMonth++)
 	{
-		if (!strcmp(curString, arrayOfMonthes[numberOfMonth].name))
+		if (!strcmp(curString, arrayOfMonthes[numberOfMonth]))
 			time.tm_mon = numberOfMonth;
 	}
 
@@ -169,11 +165,12 @@ void pop(ListOfRequests *listOfRequests)
 	}
 	else
 		listOfRequests->first = listOfRequests->last = NULL;
+	free(popElement);
 }
 
 int main()
 {
-	inFile = fopen("access_log_Jul95", "r");
+	inFile = fopen("access_log_Jul95.txt", "r");
 
 	int timePeriod = neededPeriod();
 	if (timePeriod == -1)
@@ -194,6 +191,7 @@ int main()
 	char *stringOfTime;
 	char *stringOfRequest;
 	char *stringOfServerStatus;
+	char *stringTemp;
 
 	int maxRequests;
 	int startTime;
@@ -205,7 +203,8 @@ int main()
 
 	for (int numberOfLine = 0; !isLineLast; numberOfLine++)
 	{
-		logParser(&stringOfTime, &stringOfRequest, &stringOfServerStatus);
+		stringTemp = logParser(&stringOfTime, &stringOfRequest, &stringOfServerStatus);
+		
 		if (stringOfTime != NULL)
 		{
 			timeOfRequest = logTimeParser(stringOfTime);
@@ -223,11 +222,14 @@ int main()
 				endTime = timeOfRequest;
 			}
 		}
+
 		if (stringOfServerStatus != NULL && stringOfServerStatus[0] == '5')
 		{
 			printf("%s \n", stringOfRequest);
 			badRequest++;
 		}
+
+		free(stringTemp);
 	}
 
 	printf("\nTotal amount of bad requests: %d", badRequest);
