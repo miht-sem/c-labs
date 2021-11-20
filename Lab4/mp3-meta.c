@@ -22,39 +22,26 @@ typedef struct FrameOfTag // frame (10 байт + unicode(2 байта) )
 HeaderOfTag header;
 FrameOfTag frame;
 
-int syncsafeByteToInt(uint8_t size[4], int isHeader) // syncsafe byte в int
+int syncsafeByteToInt(uint8_t size[4]) // syncsafe byte в int
 {
-    if (header.version[0] == 4 || isHeader) // Если версия ID3v2 == 4 или функция вызвана для header
-        return (int)size[0] << 21 | (int)size[1] << 14 | (int)size[2] << 7 | (int)size[3] << 0; 
-        // 1 бит у каждого syncsafe byte всегда 0, поэтому у первого syncsafe byte мы делаем
-        // побитовый сдвиг влево на 21 (всего 28 бит), у второго на 14 и т. д.
-    return (int)size[0] << 24 | (int)size[1] << 16 | (int)size[2] << 8 | (int)size[3] << 0;
-    // Выполняется, когда версия ID3v2 не равна 4, побитовый сдвиг делается по аналогии
+    return (int)size[0] << 21 | (int)size[1] << 14 | (int)size[2] << 7 | (int)size[3] << 0; 
+    // 1 бит у каждого syncsafe byte всегда 0, поэтому у первого syncsafe byte мы делаем
+    // побитовый сдвиг влево на 21 (всего 28 бит), у второго на 14 и т. д.
 }
 
 void intToSyncsafeByte(int x, uint8_t *size, int isHeader) // int в syncsafe byte 
 {
     int bits = 127;                         // 0111_1111
-    if (header.version[0] == 4 || isHeader) // Если версия ID3v2 == 4 или функция вызвана для header
-    {
-        size[0] = (x >> 21) & bits;
-        size[1] = (x >> 14) & bits;
-        size[2] = (x >> 7) & bits;
-        size[3] = x & bits;
-    }
-    else
-    {
-        size[0] = (x >> 24) & bits;
-        size[1] = (x >> 16) & bits;
-        size[2] = (x >> 8) & bits;
-        size[3] = x & bits;   
-    }
+    size[0] = (x >> 21) & bits;
+    size[1] = (x >> 14) & bits;
+    size[2] = (x >> 7) & bits;
+    size[3] = x & bits;
 }
 
 int Show(char *fileName, char *frameName, int set, int *oldFrameSize) // Показываем метаинформацию в консоль
 {
     FILE *file;
-    file = fopen(fileName, "rb"); // Открываем файл на чтение в режиме чтения побайтово
+    file = fopen(fileName, "rb"); // Открываемn файл на чтение в режиме чтения побайтово
 
     if (file == NULL)             // Проверяем существует ли файл
     {
@@ -63,7 +50,7 @@ int Show(char *fileName, char *frameName, int set, int *oldFrameSize) // Пок�
     }
 
     fread(&header, 1, 10, file);                     // Читаем header из mp3 файла (10 байт)
-    int tagSize = syncsafeByteToInt(header.size, 1); // Получаем размер тега
+    int tagSize = syncsafeByteToInt(header.size); // Получаем размер тега
     int writePos = 0;                                // Позиция откуда записываем/считываем
     while (fread(&frame, 1, 11, file))               // Считываем Frame из файла (11 байт)
     {
@@ -74,7 +61,7 @@ int Show(char *fileName, char *frameName, int set, int *oldFrameSize) // Пок�
                                          // В этом случае мы запишем новый Frame со своим значением и со своим ID
         }
 
-        int sizeOfFrame = syncsafeByteToInt(frame.size, 0);  // Получаем размер значения Frame в int ( длина строки )
+        int sizeOfFrame = syncsafeByteToInt(frame.size);  // Получаем размер значения Frame в int ( длина строки )
         uint8_t *buffer = (uint8_t *)calloc(sizeOfFrame, 1); // Выделяем память под значение Frame
         fread(buffer, 1, sizeOfFrame - 1, file);             // Запоминаем значениие Frame
         buffer[sizeOfFrame - 1] = 0;                         // Обнуляем последний элемент
@@ -155,7 +142,7 @@ void Set(char *fileName, char *frameName, char *frameValue) // Функция д
 
     memcpy(frame.frameId, frameName, 4);        // Копируем ID Frame из frameName в frame.frameId
 
-    int tagSize = syncsafeByteToInt(header.size, 1);  // Получаем размер tag
+    int tagSize = syncsafeByteToInt(header.size);  // Получаем размер tag
     tagSize += diffInSize;                            // Увеличиваем размер tag на разницу между старым и новым значении
 
     intToSyncsafeByte(tagSize, header.size, 1);              // Записываем в header.size новый размер tag (syncsafe byte)
