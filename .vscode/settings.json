@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "time.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "__locale": "c",
+        "functional": "c",
+        "algorithm": "c",
+        "random": "c",
+        "queue": "c"
     }
 }
