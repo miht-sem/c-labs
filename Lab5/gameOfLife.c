@@ -237,7 +237,7 @@ int main(int argc, char **argv)
         }
     }
 
-    for (int i = 0; i < maxIter; i++)
+    for (int i = 0; i < (int)(maxIter / dumpFreq); i++)
     {
         nextGeneration(gameField, tempGameField, dumpFreq);
 

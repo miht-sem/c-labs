@@ -6,6 +6,7 @@
         "functional": "c",
         "algorithm": "c",
         "random": "c",
-        "queue": "c"
+        "queue": "c",
+        "typeinfo": "c"
     }
 }
